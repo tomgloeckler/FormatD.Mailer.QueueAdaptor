@@ -33,12 +33,11 @@ class Context {
 	 * @return void
 	 * @throws \Exception
 	 */
-	public function withoutMailQueuing(\Closure $callback)
+	public function withoutMailQueuing(\Closure $callback): void
 	{
 		$mailQueueingIsAlreadyDisabled= $this->mailQueueingDisabled;
 		$this->mailQueueingDisabled = true;
 		try {
-			/** @noinspection PhpUndefinedMethodInspection */
 			$callback->__invoke();
 		} catch (\Exception $exception) {
 			$this->mailQueueingDisabled = false;

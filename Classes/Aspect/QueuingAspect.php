@@ -41,9 +41,8 @@ class QueuingAspect {
 	 *
 	 * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint
 	 * @Flow\Around("setting(FormatD.Mailer.QueueAdaptor.enableAsynchronousMails) && method(Neos\SwiftMailer\Message->send())")
-	 * @return void
 	 */
-	public function queueEmails(\Neos\Flow\Aop\JoinPointInterface $joinPoint) {
+	public function queueEmails(\Neos\Flow\Aop\JoinPointInterface $joinPoint): mixed {
 
 		if ($this->jobContext->isMailQueueingDisabled()) {
 			return $joinPoint->getAdviceChain()->proceed($joinPoint);
@@ -61,5 +60,3 @@ class QueuingAspect {
 	}
 
 }
-
-?>
