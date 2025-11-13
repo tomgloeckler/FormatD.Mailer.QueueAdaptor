@@ -10,6 +10,7 @@ use FormatD\Mailer\QueueAdaptor\Job\MailJob;
 use Flowpack\JobQueue\Common\Job\JobManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\SwiftMailer\Message;
+use Symfony\Component\Mime\Email;
 
 
 /**
@@ -40,7 +41,8 @@ class QueuingAspect {
 	 * Intercept all emails or add bcc according to package configuration
 	 *
 	 * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint
-	 * @Flow\Around("setting(FormatD.Mailer.QueueAdaptor.enableAsynchronousMails) && method(Neos\SwiftMailer\Message->send())")
+	 * @Flow\Around("setting(FormatD.Mailer.QueueAdaptor.enableAsynchronousMails) && method(Symfony\Component\Mailer\MailerInterface->send())")
+	 * @return mixed
 	 */
 	public function queueEmails(\Neos\Flow\Aop\JoinPointInterface $joinPoint): mixed {
 
@@ -48,14 +50,11 @@ class QueuingAspect {
 			return $joinPoint->getAdviceChain()->proceed($joinPoint);
 		}
 
-		/** @var Message $email */
-		$email = $joinPoint->getProxy();
+		/** @var Email $email */
+		$email = $joinPoint->getMethodArgument('message');
 		$job = new MailJob($email);
-		$this->jobManager->queue($email->getQueueName() ? $email->getQueueName() : 'fdmailer-mail-queue', $job);
+		$this->jobManager->queue($this->settings['queueName'], $job);
 
-		// Neos\SwiftMailer\Message->send() should return the number of recipients who were accepted for delivery
-		// We dont know that until mail is execured by queue so we assume every recipient was accepted
-		// @todo: read recipient count and return that
 		return 1;
 	}
 
